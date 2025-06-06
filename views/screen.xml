@@ -1,0 +1,9 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+    <record id="actions_client_bad_odoo" model="ir.actions.client">
+        <field name="name">Bad Odoo</field>
+        <field name="tag">bad_odoo</field>
+    </record>
+
+    <menuitem name="Bad Odoo" id="menu_root" action="actions_client_bad_odoo"/>
+</odoo>
