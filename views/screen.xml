@@ -5,5 +5,5 @@
         <field name="tag">bad_odoo</field>
     </record>
 
-    <menuitem name="Bad Odoo" id="menu_root" action="actions_client_bad_odoo"/>
+    <menuitem name="Bad Odoo" id="menu_root" action="actions_client_bad_odoo" web_icon="bad_odoo,static/description/menu.png"/>
 </odoo>

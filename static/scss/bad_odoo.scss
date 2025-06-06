@@ -1,0 +1,93 @@
+.bad_odoo-container {
+  padding: 1rem;
+  max-height: 100vh;
+  max-width: 100vw;
+  aspect-ratio: 1/1;
+  margin: auto;
+
+  .bad_odoo-controls {
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    display: flex;
+
+    border-bottom: 1px solid #ddd;
+
+    gap: 1rem;
+
+    .btn {
+      align-self: center;
+    }
+
+    input[type="range"] {
+      -webkit-appearance: none;
+      width: 100%;
+      height: 6px;
+      background: #ddd;
+      border-radius: 3px;
+      outline: none;
+      margin: 0.5em 0;
+      transition: background 0.3s;
+    }
+
+    input[type="range"]:hover {
+      background: #ccc;
+    }
+
+    /* WebKit (Chrome, Safari) */
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: o-color("primary");
+      cursor: pointer;
+      margin-top: -5px; /* Centers thumb on track */
+      transition: background 0.3s;
+    }
+
+    input[type="range"]::-webkit-slider-thumb:hover {
+      background: #0056b3;
+    }
+
+    /* Firefox */
+    input[type="range"]::-moz-range-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: o-color("primary");
+      cursor: pointer;
+    }
+
+    input[type="range"]::-moz-range-track {
+      background: #ddd;
+      height: 6px;
+      border-radius: 3px;
+    }
+
+    /* Edge/IE */
+    input[type="range"]::-ms-thumb {
+      height: 16px;
+      width: 16px;
+      border-radius: 50%;
+      background: o-color("primary");
+      cursor: pointer;
+    }
+
+    input[type="range"]::-ms-track {
+      background: transparent;
+      border-color: transparent;
+      color: transparent;
+      height: 6px;
+    }
+  }
+
+  .bad_odoo-grid {
+    display: grid;
+    gap: 2px;
+
+    .bad_odoo-cell {
+      aspect-ratio: 1 / 1;
+      background-color: lightblue;
+    }
+  }
+}

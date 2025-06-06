@@ -11,8 +11,10 @@
     ],
     "assets": {
         "web.assets_backend": [
+            "bad_odoo/static/scss/bad_odoo.scss",
             "bad_odoo/static/src/bad_odoo.esm.js",
             "bad_odoo/static/src/bad_odoo.xml",
         ],
     },
+    "license": "Other proprietary",
 }

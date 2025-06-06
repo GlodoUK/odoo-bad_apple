@@ -1,54 +1,28 @@
 <?xml version='1.0' encoding='utf-8'?>
 <templates xml:space="preserve">
-    <t t-name="BadOdoo.Template">
-        <div style="font-size: 0.25rem;">
-
-            <button t-on-click="play" class="btn btn-primary" t-if="!state.playing">Play</button>
-            <button t-on-click="pause" class="btn btn-secondary" t-if="state.playing">Pause</button>
-
-            <t t-if="state.frameIndex &gt; -1">
-
-
-
-  <input type="range" t-att-min="0" t-att-max="state.duration" t-att-step="0.01" t-att-value="audio.currentTime" t-on-input="onScrubberInput" t-on-change="onScrubberChange" style="width: 100%; margin: 1em 0;"/>
-
-
-                <div class="table-responsive">
-                    <table class="o_data_table table table-bordered text-center mb-0">
-                        <tbody>
-
-                            <tr t-foreach="state.frames[state.frameIndex]" t-as="row" t-key="row_index">
-                                <t t-foreach="row" t-as="pixel" t-key="pixel_index">
-                                    <td class="text-center align-middle p-0">
-
-                                       <div class="o_cohort_highlight m-1 rounded p-1 o_cohort_value" t-att-class="pixel &gt; 0 ? 'text-white bg-white' : 'bg-primary text-primary'">█</div>
-
-                                    </td>
-                                </t>
-                            </tr>
-
-
-
-
-                        </tbody>
-
-
-
-                    </table>
-                </div>
-
-
-
-            <table class="table table-sm">
-
-
-
-            </table>
-
-
-            </t>
-
-
-        </div>
-    </t>
+	<t t-name="BadOdoo.Template">
+		<t t-if="!state.loaded">
+            Loading...
+        </t>
+		<t t-if="state.loaded">
+			<div class="bad_odoo-container">
+				<div class="bad_odoo-controls">
+					<button t-on-click="play" class="btn btn-primary" t-if="!state.playing">
+						<i class="fa fa-play"/>
+					</button>
+					<button t-on-click="pause" class="btn btn-secondary" t-if="state.playing">
+						<i class="fa fa-pause"/>
+					</button>
+					<input type="range" t-att-min="0" t-att-max="state.duration" t-att-step="0.01" t-att-value="audio.currentTime" t-on-input="onScrubberInput" t-on-change="onScrubberChange" style="width: 100%; margin: 1em 0;"/>
+				</div>
+				<div class="bad_odoo-grid" t-attf-style="grid-template-columns: repeat(#{ state.width }, 1fr); grid-template-rows: repeat(#{ state.height }, 1fr)">
+					<t t-foreach="state.frames[state.frameIndex]" t-as="row" t-key="row_index">
+						<t t-foreach="row" t-as="pixel" t-key="pixel_index">
+							<div class="bad_odoo-cell rounded" t-att-class="pixel &gt; 0 ? 'text-white bg-white' : 'bg-primary text-primary'"/>
+						</t>
+					</t>
+				</div>
+			</div>
+		</t>
+	</t>
 </templates>
