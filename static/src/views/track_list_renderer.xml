@@ -1,3 +1,7 @@
 <templates xml:space="preserve">
-    <t t-name="bad_odoo.TrackListRenderer" t-inherit="account.FileUploadListRenderer" t-inherit-mode="primary"/>
+    <t
+        t-name="bad_odoo.TrackListRenderer"
+        t-inherit="account.FileUploadListRenderer"
+        t-inherit-mode="primary"
+    />
 </templates>

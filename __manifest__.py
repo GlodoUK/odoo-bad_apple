@@ -18,5 +18,5 @@
             "bad_odoo/static/src/views/*",
         ],
     },
-    "license": "Other proprietary",
+    "license": "LGPL-3",
 }

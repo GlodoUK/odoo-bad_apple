@@ -1,3 +1,7 @@
 <templates xml:space="preserve">
-    <t t-name="bad_odoo.TrackKanbanRenderer" t-inherit="account.FileUploadKanbanRenderer" t-inherit-mode="primary"/>
+    <t
+        t-name="bad_odoo.TrackKanbanRenderer"
+        t-inherit="account.FileUploadKanbanRenderer"
+        t-inherit-mode="primary"
+    />
 </templates>

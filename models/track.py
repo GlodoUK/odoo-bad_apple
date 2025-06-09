@@ -1,15 +1,16 @@
-import struct
-import io
-import glob
 import base64
+import glob
+import io
 import os
-import tempfile
+import struct
 import subprocess
-from odoo import models, fields, _, api
+import tempfile
 
 from PIL import Image
 
-from odoo.addons.queue_job.delay import group, chain
+from odoo import fields, models
+
+from odoo.addons.queue_job.delay import chain, group
 
 THRESHOLD = 128
 
@@ -17,6 +18,7 @@ THRESHOLD = 128
 # static/scss/bad_odoo.scss
 WIDTH = 128
 HEIGHT = 80
+
 
 def load_frame_bytes(image_path, width, height):
     img = Image.open(image_path).convert("L").resize((width, height))
@@ -36,6 +38,7 @@ def load_frame_bytes(image_path, width, height):
         data.append(byte)
     return data
 
+
 def format_timestamp(seconds: float) -> str:
     hrs = int(seconds // 3600)
     mins = int((seconds % 3600) // 60)
@@ -52,11 +55,10 @@ class Track(models.Model):
     raw = fields.Binary(attachment=True, required=True)
     frames = fields.Binary(attachment=True)
     audio = fields.Binary(attachment=True)
-    state = fields.Selection([
-        ('draft', 'Pending'),
-        ('import', 'Importing'),
-        ('ready', 'Ready')
-    ], default="draft")
+    state = fields.Selection(
+        [("draft", "Pending"), ("import", "Importing"), ("ready", "Ready")],
+        default="draft",
+    )
 
     def action_import(self):
         self.ensure_one()
@@ -77,13 +79,13 @@ class Track(models.Model):
             thumbnail = os.path.join(td, "thumbnail.png")
 
             cmd = [
-                'ffmpeg',
-                '-i',
+                "ffmpeg",
+                "-i",
                 raw,
-                '-ss',
+                "-ss",
                 "00:00:10.000",
-                '-vframes',
-                '1',
+                "-vframes",
+                "1",
                 "-vf",
                 "scale=128:128:force_original_aspect_ratio=decrease,format=rgba,pad=128:128:(ow-iw)/2:(oh-ih)/2:color=0x00000000",
                 thumbnail,
@@ -96,25 +98,28 @@ class Track(models.Model):
     def _import_frames(self):
         with tempfile.TemporaryDirectory() as td:
             frames = os.path.join(td, "frames")
-            raw = os.path.join(td, "raw")
-            with open(raw, "wb+") as f:
+            input_path = os.path.join(td, "input")
+            with open(input_path, "wb+") as f:
                 f.write(base64.b64decode(self.raw))
             os.mkdir(frames)
-            subprocess.run([
-                'ffmpeg',
-                '-i',
-                raw,
-                '-vf',
-                f'scale={WIDTH}:{HEIGHT},format=gray',
-                '-r', '24',
-                os.path.join(frames, 'frame_%04d.pgm'),
-            ])
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-i",
+                    input_path,
+                    "-vf",
+                    f"scale={WIDTH}:{HEIGHT},format=gray",
+                    "-r",
+                    "24",
+                    os.path.join(frames, "frame_%04d.pgm"),
+                ]
+            )
 
             frames = sorted(glob.glob(os.path.join(frames, "*.pgm")))
             num_frames = len(frames)
 
             if num_frames < 1:
-                raise Exception("Fuck")
+                raise Exception("Something went wrong with ffmpeg. Check logs. Cry.")
 
             f = io.BytesIO()
             f.write(struct.pack(">HHH", WIDTH, HEIGHT, num_frames))
@@ -126,51 +131,62 @@ class Track(models.Model):
 
     def _import_audio(self):
         with tempfile.TemporaryDirectory() as td:
-            input = os.path.join(td, "raw")
-            output = os.path.join(td, "output.ogg")
-            with open(input, "wb+") as f:
+            input_path = os.path.join(td, "raw")
+            output_path = os.path.join(td, "output.ogg")
+            with open(input_path, "wb+") as f:
                 f.write(base64.b64decode(self.raw))
-            subprocess.run([
-                'ffmpeg',
-                '-i',
-                input,
-                '-c:a',
-                'libvorbis',
-                '-q:v',
-                '7',
-                output,
-            ], check=True)
-            with open(output, "rb+") as f:
+            subprocess.run(
+                [
+                    "ffmpeg",
+                    "-i",
+                    input_path,
+                    "-c:a",
+                    "libvorbis",
+                    "-q:v",
+                    "7",
+                    output_path,
+                ],
+                check=True,
+            )
+            with open(output_path, "rb+") as f:
                 self.audio = base64.b64encode(f.read())
 
     def _action_ready(self):
-        self.state = 'ready'
+        self.state = "ready"
 
     def action_play(self):
         self.ensure_one()
-        action = self.env["ir.actions.actions"]._for_xml_id("bad_odoo.actions_client_bad_odoo")
-        action['params'] = {'active_id': self.id}
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "bad_odoo.actions_client_bad_odoo"
+        )
+        action["params"] = {"active_id": self.id}
         return action
 
     def create_document_from_attachment(self, attachment_ids):
         records = self.env[self._name]
 
         for attachment in attachment_ids:
-            attachment_id = self.env['ir.attachment'].browse(attachment)
+            attachment_id = self.env["ir.attachment"].browse(attachment)
 
-            record = self.create({
-                'name': attachment_id.name,
-            })
-            attachment_id.write({
-                'res_model': self._name,
-                'res_id': record.id,
-                'res_field': 'raw',
-            })
+            record = self.create(
+                {
+                    "name": attachment_id.name,
+                }
+            )
+            attachment_id.write(
+                {
+                    "res_model": self._name,
+                    "res_id": record.id,
+                    "res_field": "raw",
+                }
+            )
             records |= record
 
         for record in records:
             record.with_delay(eta=2).action_import()
 
-        action = self.env["ir.actions.actions"]._for_xml_id("bad_odoo.actions_bad_odoo_tracks_act_window")
-        action['domain'] = [('id', 'in', records.ids)]
+        action = self.env["ir.actions.actions"]._for_xml_id(
+            "bad_odoo.actions_bad_odoo_tracks_act_window"
+        )
+        action["domain"] = [("id", "in", records.ids)]
         return action
