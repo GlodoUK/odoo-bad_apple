@@ -5,7 +5,6 @@
 - Wait for the jobs to complete
 - Click play.
 
-
 ## Why
 
 The original plan was to use the cohort view, but it was too slow and restricted to the

@@ -48,7 +48,7 @@ class Track(models.Model):
     _description = "Bad Odoo Track"
 
     name = fields.Char(required=True)
-    thumbnail = fields.Image()
+    thumbnail = fields.Image(max_width=128, max_height=128)
     raw = fields.Binary(attachment=True, required=True)
     frames = fields.Binary(attachment=True)
     audio = fields.Binary(attachment=True)
