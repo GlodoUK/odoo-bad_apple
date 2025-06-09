@@ -12,6 +12,9 @@ from PIL import Image
 from odoo.addons.queue_job.delay import group, chain
 
 THRESHOLD = 128
+
+# XXX: If this changes, make sure you also update the aspect ratio in
+# static/scss/bad_odoo.scss
 WIDTH = 128
 HEIGHT = 80
 
