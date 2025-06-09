@@ -136,12 +136,8 @@ class Track(models.Model):
                 input,
                 '-c:a',
                 'libvorbis',
-                '-b:a',
-                '128k',
-                '-ar',
-                '44100',
-                '-ac',
-                '1',
+                '-q:v',
+                '7',
                 output,
             ], check=True)
             with open(output, "rb+") as f:
