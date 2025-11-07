@@ -10,8 +10,6 @@ from PIL import Image
 
 from odoo import fields, models
 
-from odoo.addons.queue_job.delay import chain, group
-
 THRESHOLD = 128
 
 # XXX: If this changes, make sure you also update the aspect ratio in
@@ -52,38 +50,20 @@ class Track(models.Model):
 
     name = fields.Char(required=True)
     thumbnail = fields.Image(max_width=128, max_height=128)
-    raw = fields.Binary(attachment=True, required=True)
     frames = fields.Binary(attachment=True)
     audio = fields.Binary(attachment=True)
-    state = fields.Selection(
-        [("draft", "Pending"), ("import", "Importing"), ("ready", "Ready")],
-        default="draft",
-    )
 
-    def action_import(self):
+    def _import_thumbnail(self, input_path):
         self.ensure_one()
-        group_a = group(
-            self.delayable()._import_thumbnail(),
-            self.delayable()._import_frames(),
-            self.delayable()._import_audio(),
-        )
-        chain(group_a, self.delayable()._action_ready()).delay()
-        self.state = "import"
-
-    def _import_thumbnail(self):
         with tempfile.TemporaryDirectory() as td:
-            raw = os.path.join(td, "raw")
-            with open(raw, "wb+") as f:
-                f.write(base64.b64decode(self.raw))
-
             thumbnail = os.path.join(td, "thumbnail.png")
 
             cmd = [
                 "ffmpeg",
                 "-i",
-                raw,
+                input_path,
                 "-ss",
-                "00:00:10.000",
+                "00:00:1.000",
                 "-vframes",
                 "1",
                 "-vf",
@@ -95,12 +75,10 @@ class Track(models.Model):
             with open(thumbnail, "rb+") as f:
                 self.thumbnail = base64.b64encode(f.read())
 
-    def _import_frames(self):
+    def _import_frames(self, input_path):
+        self.ensure_one()
         with tempfile.TemporaryDirectory() as td:
             frames = os.path.join(td, "frames")
-            input_path = os.path.join(td, "input")
-            with open(input_path, "wb+") as f:
-                f.write(base64.b64decode(self.raw))
             os.mkdir(frames)
             subprocess.run(
                 [
@@ -129,12 +107,10 @@ class Track(models.Model):
 
             self.frames = base64.b64encode(f.getvalue())
 
-    def _import_audio(self):
+    def _import_audio(self, input_path):
+        self.ensure_one()
         with tempfile.TemporaryDirectory() as td:
-            input_path = os.path.join(td, "raw")
             output_path = os.path.join(td, "output.ogg")
-            with open(input_path, "wb+") as f:
-                f.write(base64.b64decode(self.raw))
             subprocess.run(
                 [
                     "ffmpeg",
@@ -151,9 +127,6 @@ class Track(models.Model):
             with open(output_path, "rb+") as f:
                 self.audio = base64.b64encode(f.read())
 
-    def _action_ready(self):
-        self.state = "ready"
-
     def action_play(self):
         self.ensure_one()
         action = self.env["ir.actions.actions"]._for_xml_id(
@@ -167,23 +140,20 @@ class Track(models.Model):
 
         for attachment in attachment_ids:
             attachment_id = self.env["ir.attachment"].browse(attachment)
+            input_path = attachment_id._full_path(attachment_id.store_fname)
 
             record = self.create(
                 {
                     "name": attachment_id.name,
                 }
             )
-            attachment_id.write(
-                {
-                    "res_model": self._name,
-                    "res_id": record.id,
-                    "res_field": "raw",
-                }
-            )
+            record._import_thumbnail(input_path)
+            record._import_audio(input_path)
+            record._import_frames(input_path)
+
             records |= record
 
-        for record in records:
-            record.with_delay(eta=2).action_import()
+            attachment_id.unlink()
 
         action = self.env["ir.actions.actions"]._for_xml_id(
             "bad_odoo.actions_bad_odoo_tracks_act_window"

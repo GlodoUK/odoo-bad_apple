@@ -4,9 +4,9 @@
     "author": "Glo Networks",
     "website": "https://www.glo.systems/",
     "category": "Uncategorized",
-    "version": "18.0.1.0.0",
+    "version": "19.0.1.0.0",
     "external_dependencies": {"python": ["pillow"], "bin": ["ffmpeg"]},
-    "depends": ["web", "queue_job", "account"],
+    "depends": ["web", "account"],
     "data": [
         "security/ir.model.access.csv",
         "views/screen.xml",

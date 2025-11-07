@@ -2,7 +2,11 @@
 <templates xml:space="preserve">
 	<t t-name="BadOdoo.Template">
         <t t-if="!state.loaded">
-            Loading...
+            <div
+                class="bad_odoo-container font-monospace align-items-center justify-content-center d-flex"
+            >
+                <div class="bad_odoo-loading">Loading</div>
+            </div>
         </t>
         <t t-if="state.loaded">
             <div class="bad_odoo-container">
@@ -21,16 +25,8 @@
                     >
                         <i class="fa fa-pause" />
                     </button>
-                    <input
-                        type="range"
-                        t-att-min="0"
-                        t-att-max="state.duration"
-                        t-att-step="0.01"
-                        t-att-value="audio.currentTime"
-                        t-on-input="onScrubberInput"
-                        t-on-change="onScrubberChange"
-                        style="width: 100%; margin: 1em 0;"
-                    />
+
+                    <div>Now playing <t t-out="name" /></div>
                 </div>
                 <div
                     class="bad_odoo-grid"

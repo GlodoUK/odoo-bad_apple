@@ -7,14 +7,12 @@
             <list js_class="bad_odoo_tracks_list">
                 <field name="thumbnail" widget="image" />
                 <field name="name" />
-                <field name="state" />
                 <button
                     name="action_play"
                     icon="fa-play"
                     type="object"
                     string="Play"
                     class="btn btn-primary"
-                    invisible="state != 'ready'"
                 />
             </list>
         </field>
@@ -28,32 +26,32 @@
                 class="o_kanban_mobile"
                 sample="1"
                 quick_create="false"
+                create="False"
                 js_class="bad_odoo_tracks_kanban"
             >
+                <field name="id" />
                 <templates>
                     <t t-name="card">
-                        <div class="d-flex">
-                            <field name="name" />
-                            <field
-                                name="state"
-                                widget="label_selection"
-                                options="{'classes': {'draft': 'info', 'import': 'warning', 'ready': 'success'}}"
-                                class="ms-auto"
-                            />
-                        </div>
+                        <t
+                            t-set="image_url"
+                            t-value="'/web/image/bad_odoo.track/' + record.id.raw_value + '/thumbnail' "
+                        />
+                        <div
+                            t-attf-style="height: 200px; background-image: url(#{image_url}); background-size: cover; background-repeat: no-repeat; background-position: center;"
+                        />
 
-                        <field
-                            name="thumbnail"
-                            widget="image"
-                            class="ms-auto me-auto"
-                        />
-                        <button
-                            name="action_play"
-                            type="object"
-                            string="Play"
-                            icon="fa-play"
-                            class="btn btn-outline-primary"
-                        />
+                        <div
+                            class="d-flex align-items-center flex-row font-monospace pt-3"
+                        >
+                            <button
+                                name="action_play"
+                                type="object"
+                                string="Play"
+                                icon="fa-play"
+                                class="btn btn-outline-primary me-2"
+                            />
+                            <field name="name" />
+                        </div>
                     </t>
                 </templates>
             </kanban>
@@ -73,7 +71,7 @@
     </record>
 
     <menuitem
-        name="1-Bit Cinema"
+        name="Bit Cinema"
         id="menu_tracks"
         action="actions_bad_odoo_tracks_act_window"
         web_icon="bad_odoo,static/description/menu.png"

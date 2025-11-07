@@ -69,21 +69,26 @@ export class BadOdoo extends Component {
         this.audio = undefined;
         this.activeId = this.props.action.params.active_id;
         this.orm = useService("orm");
+        this.name = undefined;
+        this.animationFrameId = undefined;
 
         onMounted(async () => {
             let rpcData = await this.orm.read(
                 "bad_odoo.track",
                 [this.activeId],
-                ["frames", "audio"]
+                ["name", "frames", "audio"]
             );
             rpcData = rpcData[0];
+            this.name = rpcData.name;
             const {width, height, frames} = loadBinaryFramesFromBase64(rpcData.frames);
             this.audio = audioFromBase64(rpcData.audio);
             this.audio.addEventListener("loadedmetadata", () => {
                 this.state.duration = this.audio.duration;
                 this.state.loaded = true;
             });
-
+            this.audio.addEventListener("ended", () => {
+                this.pause();
+            });
             this.state = Object.assign(
                 this.state,
                 {},
@@ -110,7 +115,7 @@ export class BadOdoo extends Component {
         this.audio.play();
         this.state.playing = true;
 
-        requestAnimationFrame(() => {
+        this.animationFrameId = requestAnimationFrame(() => {
             this.animation();
         });
     }
@@ -125,18 +130,9 @@ export class BadOdoo extends Component {
 
             if (this.animationFrameId) {
                 cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = undefined;
             }
         }
-    }
-
-    onScrubberInput() {
-        this.pause();
-    }
-
-    onScrubberChange(ev) {
-        const time = parseFloat(ev.target.value);
-        this.audio.currentTime = time;
-        this.play();
     }
 
     animation() {
@@ -146,9 +142,9 @@ export class BadOdoo extends Component {
             // 24 fps
             const currentFrameIndex = Math.floor(currentTimeMs / (1000 / 24));
 
-            if (currentFrameIndex <= this.state.frames.length) {
+            if (currentFrameIndex < this.state.frames.length) {
                 this.state.frameIndex = currentFrameIndex;
-                requestAnimationFrame(() => {
+                this.animationFrameId = requestAnimationFrame(() => {
                     this.animation();
                 });
             } else {
@@ -156,6 +152,8 @@ export class BadOdoo extends Component {
                 this.pause();
                 return;
             }
+        } else {
+            this.pause();
         }
     }
 }
